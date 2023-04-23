@@ -6,17 +6,19 @@ class RaptorUI {
 public:
 	bool Enabled;
 	DWORD Identifier;
+	HWND WindowHandle;
 
 	RaptorUI() {
 		this->Enabled = false;
 		this->Identifier = 0;
+		this->WindowHandle = NULL;
 	}
 };
 
-RaptorUI GetUIFromIdentifier(const std::vector<RaptorUI>& UIList,DWORD Identifier) {
-	for (RaptorUI UI : UIList) {
-		if (UI.Identifier == Identifier) {
-			return UI;
+int GetUIFromIdentifier(const std::vector<RaptorUI>& UIList,DWORD Identifier) {
+	for (int i = 0; i < UIList.size(); i++) {
+		if (UIList[i].Identifier == Identifier) {
+			return i;
 		}
 	}
 }

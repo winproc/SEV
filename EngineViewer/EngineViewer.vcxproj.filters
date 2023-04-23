@@ -29,5 +29,8 @@
     <ClInclude Include="RaptorState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IDM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

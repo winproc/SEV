@@ -12,6 +12,7 @@
 
 #include "Geometry_local.h"
 #include "RaptorState.h"
+#include "IDM.h"
 
 // Forward declaration for message handling
 LRESULT CALLBACK HandleMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -80,6 +81,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
         RaptorUI EngineUI;
         EngineUI.Identifier = IdIncrement;
+        EngineUI.WindowHandle = raptorEngine;
 
         EngineUIList.push_back(EngineUI);
 
@@ -105,6 +107,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
         RaptorUI EngineUI;
         EngineUI.Identifier = IdIncrement;
+        EngineUI.WindowHandle = raptorEngine;
 
         EngineUIList.push_back(EngineUI);
 
@@ -130,6 +133,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
         RaptorUI EngineUI;
         EngineUI.Identifier = IdIncrement;
+        EngineUI.WindowHandle = raptorEngine;
 
         EngineUIList.push_back(EngineUI);
 
@@ -175,15 +179,31 @@ LRESULT CALLBACK HandleMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         LPDRAWITEMSTRUCT DrawingInformation = reinterpret_cast<LPDRAWITEMSTRUCT>(lParam);
         
         Gdiplus::Graphics GDIGraphicsContext(DrawingInformation->hDC);
-        Gdiplus::Pen WhiteColor(Gdiplus::Color(255, 255, 255, 255), 4);
 
-        GDIGraphicsContext.DrawEllipse(
-            &WhiteColor, 
-            (INT)DrawingInformation->rcItem.left,
-            (INT)DrawingInformation->rcItem.top,
-            (INT)(DrawingInformation->rcItem.right - DrawingInformation->rcItem.left - 4),
-            (INT)(DrawingInformation->rcItem.bottom - DrawingInformation->rcItem.top - 4)
-        );
+        RaptorUI* UIEngine = &EngineUIList[GetUIFromIdentifier(EngineUIList, (DWORD)wParam)];
+        if (UIEngine->Enabled) {
+            Gdiplus::SolidBrush WhiteFill(Gdiplus::Color(255, 255, 255));
+
+            GDIGraphicsContext.FillEllipse(
+                &WhiteFill,
+                (INT)DrawingInformation->rcItem.left,
+                (INT)DrawingInformation->rcItem.top,
+                (INT)(DrawingInformation->rcItem.right - DrawingInformation->rcItem.left),
+                (INT)(DrawingInformation->rcItem.bottom - DrawingInformation->rcItem.top)
+            );
+        }
+        else {
+            Gdiplus::Pen WhiteColor(Gdiplus::Color(255, 255, 255, 255), 4);
+
+            GDIGraphicsContext.Clear(Gdiplus::Color(0, 0, 0));
+            GDIGraphicsContext.DrawEllipse(
+                &WhiteColor,
+                (INT)DrawingInformation->rcItem.left,
+                (INT)DrawingInformation->rcItem.top,
+                (INT)(DrawingInformation->rcItem.right - DrawingInformation->rcItem.left - 4),
+                (INT)(DrawingInformation->rcItem.bottom - DrawingInformation->rcItem.top - 4)
+            );
+        }
 
         return TRUE;
     }
@@ -193,19 +213,99 @@ LRESULT CALLBACK HandleMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             DWORD Identifier = LOWORD(wParam);
             HWND UIHandle = (HWND)lParam;
 
-            RaptorUI UIElement = GetUIFromIdentifier(EngineUIList, Identifier);
-            UIElement.Enabled = (UIElement.Enabled ? false : true);
+            RaptorUI* UIElement = &EngineUIList[GetUIFromIdentifier(EngineUIList, Identifier)];
+            UIElement->Enabled = (UIElement->Enabled ? false : true);
 
             HDC ControlDrawContext = GetDC(UIHandle);
-            
+
             RECT WindowDimensions;
-            GetWindowRect(UIHandle, &WindowDimensions);
+            GetClientRect(UIHandle, &WindowDimensions);
 
             Gdiplus::Graphics GDIGraphicsContext(ControlDrawContext);
+            if (UIElement->Enabled) {
+                Gdiplus::SolidBrush WhiteFill(Gdiplus::Color(255, 255, 255));
 
-           
+                GDIGraphicsContext.FillEllipse(
+                    &WhiteFill,
+                    (INT)WindowDimensions.left,
+                    (INT)WindowDimensions.top,
+                    (INT)(WindowDimensions.right - WindowDimensions.left),
+                    (INT)(WindowDimensions.bottom - WindowDimensions.top)
+                );
+            }
+            else {
+                Gdiplus::Pen WhiteColor(Gdiplus::Color(255, 255, 255), 4);
+
+                GDIGraphicsContext.Clear(Gdiplus::Color(0, 0, 0));
+
+                GDIGraphicsContext.DrawEllipse(
+                    &WhiteColor,
+                    (INT)WindowDimensions.left,
+                    (INT)WindowDimensions.top,
+                    (INT)(WindowDimensions.right - WindowDimensions.left - 4),
+                    (INT)(WindowDimensions.bottom - WindowDimensions.top - 4)
+                );
+            }
+
 
             ReleaseDC(UIHandle, ControlDrawContext);
+        };
+        
+        if (LOWORD(wParam) == IDM_START_STAGE_ONE) {
+            for (int i = 0; i < EngineUIList.size(); i++) {
+                RaptorUI* EngineUI = &EngineUIList[i];
+
+                EngineUI->Enabled = true;
+
+                HDC ControlDrawContext = GetDC(EngineUI->WindowHandle);
+
+                RECT WindowDimensions;
+                GetClientRect(EngineUI->WindowHandle, &WindowDimensions);
+
+                Gdiplus::SolidBrush WhiteFill(Gdiplus::Color(255, 255, 255));
+
+
+                Gdiplus::Graphics GDIGraphicsContext(ControlDrawContext);
+
+                Gdiplus::Status stat = GDIGraphicsContext.FillEllipse(
+                    &WhiteFill,
+                    (INT)WindowDimensions.left,
+                    (INT)WindowDimensions.top,
+                    (INT)(WindowDimensions.right - WindowDimensions.left),
+                    (INT)(WindowDimensions.bottom - WindowDimensions.top)
+                );
+
+
+
+                ReleaseDC(EngineUI->WindowHandle, ControlDrawContext);
+                
+            }
+        }
+        else if (LOWORD(wParam) == IDM_STOP_STAGE_ONE) {
+            for (int i = 0; i < EngineUIList.size(); i++) {
+                RaptorUI* EngineUI = &EngineUIList[i];
+                EngineUI->Enabled = false;
+
+                HDC ControlDrawContext = GetDC(EngineUI->WindowHandle);
+
+                RECT WindowDimensions;
+                GetClientRect(EngineUI->WindowHandle, &WindowDimensions);
+
+                Gdiplus::Graphics GDIGraphicsContext(ControlDrawContext);
+                Gdiplus::Pen WhiteColor(Gdiplus::Color(255, 255, 255), 4);
+
+                GDIGraphicsContext.Clear(Gdiplus::Color(0, 0, 0));
+
+                GDIGraphicsContext.DrawEllipse(
+                    &WhiteColor,
+                    (INT)WindowDimensions.left,
+                    (INT)WindowDimensions.top,
+                    (INT)(WindowDimensions.right - WindowDimensions.left - 4),
+                    (INT)(WindowDimensions.bottom - WindowDimensions.top - 4)
+                );
+
+                ReleaseDC(EngineUI->WindowHandle, ControlDrawContext);
+            }
         };
 
         return 0;
@@ -220,12 +320,12 @@ LRESULT CALLBACK HandleMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         if (xCoordinate > 0) {
             HMENU DisplayShortcutMenu = CreatePopupMenu();
 
-            AppendMenuW(DisplayShortcutMenu, MF_STRING, 1, L"Enable All Engines");
-            AppendMenuW(DisplayShortcutMenu, MF_STRING, 2, L"Disable All Engines");
+            AppendMenuW(DisplayShortcutMenu, MF_STRING, IDM_START_STAGE_ONE, L"Start Stage 1");
+            AppendMenuW(DisplayShortcutMenu, MF_STRING, IDM_STOP_STAGE_ONE, L"End Stage 1");
 
             TrackPopupMenu(
                 DisplayShortcutMenu,
-                TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY,
+                TPM_LEFTALIGN | TPM_TOPALIGN,
                 xCoordinate,
                 yCoordinate,
                 0,

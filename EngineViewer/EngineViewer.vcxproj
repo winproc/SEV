@@ -132,6 +132,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Geometry_local.h" />
+    <ClInclude Include="IDM.h" />
     <ClInclude Include="RaptorState.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
