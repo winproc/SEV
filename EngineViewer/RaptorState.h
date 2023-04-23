@@ -5,12 +5,14 @@
 class RaptorUI {
 public:
 	bool Enabled;
+	int Stage;
 	DWORD Identifier;
 	HWND WindowHandle;
 
 	RaptorUI() {
 		this->Enabled = false;
 		this->Identifier = 0;
+		this->Stage = 0;
 		this->WindowHandle = NULL;
 	}
 };
@@ -21,4 +23,5 @@ int GetUIFromIdentifier(const std::vector<RaptorUI>& UIList,DWORD Identifier) {
 			return i;
 		}
 	}
+	return -1;
 }

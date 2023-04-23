@@ -13,4 +13,4 @@ public:
 	}
 };
 
-std::vector<Point> ComputeLocus(int Radius, int MaxPoints);
+std::vector<Point> ComputeLocus(int Radius, int MaxPoints, int Inverted);

@@ -1,6 +1,6 @@
 #include "Geometry_local.h"
 
-std::vector<Point> ComputeLocus(int Radius, int MaxPoints) {
+std::vector<Point> ComputeLocus(int Radius, int MaxPoints, int Inverted) {
 	std::vector<Point> ListOfPoints = {};
 
 	float AngleStep = 6.28319 / MaxPoints;
@@ -8,7 +8,7 @@ std::vector<Point> ComputeLocus(int Radius, int MaxPoints) {
 	// Create a point for each angle step
 	for (int Factor = 0; (Factor * AngleStep) < 6.28319; Factor++) {
 
-		Point LocusPoint(0, Radius);
+		Point LocusPoint(0, Radius * Inverted);
 
 		// Angle is negative to ensure a clockwise rotation
 		float Angle = -Factor * AngleStep;
