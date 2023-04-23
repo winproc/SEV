@@ -4,8 +4,13 @@
 
 class RaptorUI {
 public:
-	bool Enabled = false;
-	DWORD Identifier = 0;
+	bool Enabled;
+	DWORD Identifier;
+
+	RaptorUI() {
+		this->Enabled = false;
+		this->Identifier = 0;
+	}
 };
 
 RaptorUI GetUIFromIdentifier(const std::vector<RaptorUI>& UIList,DWORD Identifier) {

@@ -16,6 +16,8 @@
 // Forward declaration for message handling
 LRESULT CALLBACK HandleMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+std::vector<RaptorUI> EngineUIList{};
+
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow)
 {
     // Register the window class
@@ -58,10 +60,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     ShowWindow(hwnd, nCmdShow);
 
-    std::vector<HWND> RaptorViewerUIHandles{};
-
-    // 
     std::vector<Point> EngineUILocations = ComputeLocus(31, 10);
+    DWORD IdIncrement = 1;
+
     for (const auto& Point : EngineUILocations) {
         HWND raptorEngine = CreateWindowExW(
             0,
@@ -72,11 +73,17 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             (85 + Point.x) * 3, (70 + Point.y) * 3 + 40, 15 * 3, 15 * 3,
 
             hwnd,         
-            NULL,       
+            (HMENU)IdIncrement,
             hInstance,  
             NULL        
         );
 
+        RaptorUI EngineUI;
+        EngineUI.Identifier = IdIncrement;
+
+        EngineUIList.push_back(EngineUI);
+
+        IdIncrement++;
         ShowWindow(raptorEngine, nCmdShow);
     }
 
@@ -91,11 +98,17 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             (85 + Point.x) * 3, (70 + Point.y) * 3 + 40, 15 * 3, 15 * 3,
 
             hwnd,       // Parent window    
-            NULL,       // Menu
+            (HMENU)IdIncrement,       // Menu
             hInstance,  // Instance handle
             NULL        // Additional application data
         );
 
+        RaptorUI EngineUI;
+        EngineUI.Identifier = IdIncrement;
+
+        EngineUIList.push_back(EngineUI);
+
+        IdIncrement++;
         ShowWindow(raptorEngine, nCmdShow);
     }
 
@@ -110,11 +123,17 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             (85 + Point.x) * 3, (70 + Point.y) * 3 + 40, 15 * 3, 15 * 3,
 
             hwnd,       // Parent window    
-            NULL,       // Menu
+            (HMENU)IdIncrement,       // Menu
             hInstance,  // Instance handle
             NULL        // Additional application data
         );
 
+        RaptorUI EngineUI;
+        EngineUI.Identifier = IdIncrement;
+
+        EngineUIList.push_back(EngineUI);
+
+        IdIncrement++;
         ShowWindow(raptorEngine, nCmdShow);
     }
 
@@ -152,18 +171,18 @@ LRESULT CALLBACK HandleMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_DRAWITEM:
     {
-
+        
         LPDRAWITEMSTRUCT DrawingInformation = reinterpret_cast<LPDRAWITEMSTRUCT>(lParam);
         
         Gdiplus::Graphics GDIGraphicsContext(DrawingInformation->hDC);
-        Gdiplus::Pen WhiteColor(Gdiplus::Color(255, 147, 147, 147), 2);
+        Gdiplus::Pen WhiteColor(Gdiplus::Color(255, 255, 255, 255), 4);
 
         GDIGraphicsContext.DrawEllipse(
             &WhiteColor, 
             (INT)DrawingInformation->rcItem.left,
             (INT)DrawingInformation->rcItem.top,
-            (INT)(DrawingInformation->rcItem.right - DrawingInformation->rcItem.left - 1),
-            (INT)(DrawingInformation->rcItem.bottom - DrawingInformation->rcItem.top - 1)
+            (INT)(DrawingInformation->rcItem.right - DrawingInformation->rcItem.left - 4),
+            (INT)(DrawingInformation->rcItem.bottom - DrawingInformation->rcItem.top - 4)
         );
 
         return TRUE;
@@ -171,8 +190,22 @@ LRESULT CALLBACK HandleMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_COMMAND:
     {
         if (HIWORD(wParam) == STN_CLICKED) {
-            OutputDebugStringA("Recieved input from static control\n");
+            DWORD Identifier = LOWORD(wParam);
+            HWND UIHandle = (HWND)lParam;
+
+            RaptorUI UIElement = GetUIFromIdentifier(EngineUIList, Identifier);
+            UIElement.Enabled = (UIElement.Enabled ? false : true);
+
+            HDC ControlDrawContext = GetDC(UIHandle);
             
+            RECT WindowDimensions;
+            GetWindowRect(UIHandle, &WindowDimensions);
+
+            Gdiplus::Graphics GDIGraphicsContext(ControlDrawContext);
+
+           
+
+            ReleaseDC(UIHandle, ControlDrawContext);
         };
 
         return 0;
